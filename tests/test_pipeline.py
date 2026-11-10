@@ -49,6 +49,7 @@ def test_missing_value_and_unseen_category():
 
     example = X_train.iloc[[0]].copy()
     example["weather"] = "hail"
+    example["distance_km"] = np.nan
     probabilities = model.predict_proba(example)[:, 1]
     assert len(probabilities) == 1
     assert np.isfinite(probabilities).all()
