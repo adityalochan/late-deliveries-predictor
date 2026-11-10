@@ -1,4 +1,3 @@
-
 import numpy as np
 from sklearn.metrics import (
     accuracy_score,
@@ -26,10 +25,7 @@ def order_cost(y_true, flagged):
     vouchers = np.sum(flagged)
     missed_late = np.sum((y_true == 1) & (~flagged))
 
-    return int(
-        VOUCHER_COST * vouchers
-        + MISSED_LATE_COST * missed_late
-    )
+    return int(VOUCHER_COST * vouchers + MISSED_LATE_COST * missed_late)
 
 
 def choose_threshold(y_true, probabilities):
@@ -70,8 +66,7 @@ def evaluate_predictions(y_true, probabilities, threshold):
         "confusion_matrix": confusion_matrix(y_true, flagged, labels=[0, 1]).tolist(),
         "accuracy": float(accuracy_score(y_true, flagged)),
         "precision": float(precision_score(y_true, flagged, zero_division=0)),
-        "recall": float(recall_score(y_true, flagged, zero_division=0)
-        ),
+        "recall": float(recall_score(y_true, flagged, zero_division=0)),
         "f1": float(f1_score(y_true, flagged, zero_division=0)),
         "roc_auc": float(roc_auc_score(y_true, probabilities)),
         "cost_flag_nobody": order_cost(y_true, np.zeros(len(y_true), dtype=bool)),

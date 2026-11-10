@@ -1,4 +1,3 @@
-
 """Train and evaluate the late-delivery prediction model."""
 
 import json
@@ -17,7 +16,6 @@ from sklearn.model_selection import (
     cross_val_predict,
     cross_validate,
 )
-from sklearn.tree import DecisionTreeClassifier
 
 from latedeliveries.evaluation import choose_threshold, evaluate_predictions
 from latedeliveries.pipeline import (
@@ -139,23 +137,17 @@ def main():
         n_jobs=-1,
     )[:, 1]
 
-    threshold, threshold_results = choose_threshold(
-        y_train, probabilities_cv
-    )
+    threshold, threshold_results = choose_threshold(y_train, probabilities_cv)
     print("Chosen threshold:", threshold)
 
-    pd.DataFrame(threshold_results).to_csv(
-        reports / "threshold_costs.csv", index=False
-    )
+    pd.DataFrame(threshold_results).to_csv(reports / "threshold_costs.csv", index=False)
 
     # Only now evaluate on the held-out test set.
     final_pipeline = grid.best_estimator_
     final_pipeline.fit(X_train, y_train)
     test_probabilities = final_pipeline.predict_proba(X_test)[:, 1]
 
-    metrics = evaluate_predictions(
-        y_test, test_probabilities, threshold
-    )
+    metrics = evaluate_predictions(y_test, test_probabilities, threshold)
 
     with (reports / "metrics.json").open("w") as file:
         json.dump(metrics, file, indent=2)

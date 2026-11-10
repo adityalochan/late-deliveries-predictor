@@ -1,4 +1,3 @@
-
 import numpy as np
 import pytest
 from sklearn.linear_model import LogisticRegression
@@ -30,7 +29,7 @@ def test_split_sizes_and_stratification():
 def test_split_is_repeatable():
     first = split_data()
     second = split_data()
-    for a, b in zip(first, second):
+    for a, b in zip(first, second, strict=True):
         assert a.equals(b)
 
 
