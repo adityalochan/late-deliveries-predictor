@@ -39,8 +39,16 @@ def split_data():
     )
 
 
-def build_pipeline(model):
-    """Build a leak-free preprocessing and modelling pipeline."""
+def build_pipeline(
+    model,
+    numeric_features=NUMERIC_FEATURES,
+    categorical_features=CATEGORICAL_FEATURES,
+):
+    """Build a leak-free preprocessing and modelling pipeline.
+
+    The feature lists default to the approved ones. They are parameters only
+    so the notebook's leakage check can add an excluded column back on purpose.
+    """
     numeric_pipeline = Pipeline(
         steps=[
             ("imputer", SimpleImputer(strategy="median")),
@@ -59,8 +67,8 @@ def build_pipeline(model):
 
     preprocessing = ColumnTransformer(
         transformers=[
-            ("numeric", numeric_pipeline, NUMERIC_FEATURES),
-            ("categorical", categorical_pipeline, CATEGORICAL_FEATURES),
+            ("numeric", numeric_pipeline, list(numeric_features)),
+            ("categorical", categorical_pipeline, list(categorical_features)),
         ]
     )
 

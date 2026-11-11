@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.DS_Store
+# models/ and reports/ are committed on purpose: the marker needs the output.

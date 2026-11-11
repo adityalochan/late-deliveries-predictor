@@ -63,8 +63,9 @@ def compare_models(X_train, y_train):
     rows = []
 
     for name, model in candidates.items():
+        pipeline = build_pipeline(model)
         scores = cross_validate(
-            build_pipeline(model),
+            pipeline,
             X_train,
             y_train,
             cv=CV,
@@ -78,6 +79,20 @@ def compare_models(X_train, y_train):
             values = scores[f"test_{metric}"]
             row[f"{metric}_mean"] = float(np.mean(values))
             row[f"{metric}_std"] = float(np.std(values))
+
+        # The cheapest total cost this model reaches on out-of-fold training
+        # probabilities: the number the business actually pays.
+        probabilities = cross_val_predict(
+            pipeline,
+            X_train,
+            y_train,
+            cv=CV,
+            method="predict_proba",
+            n_jobs=-1,
+        )[:, 1]
+        threshold, results = choose_threshold(y_train, probabilities)
+        row["best_threshold"] = threshold
+        row["lowest_cost"] = min(result["cost"] for result in results)
 
         rows.append(row)
 
@@ -100,8 +115,11 @@ def main():
     comparison.to_csv(reports / "cv_results.csv", index=False)
     print(comparison.to_string(index=False))
 
-    # Logistic regression is interpretable, efficient, and produces
-    # probabilities suitable for the voucher-cost decision rule.
+    # The two logistic regressions reach the lowest out-of-fold cost of all
+    # candidates (within about 1% of each other) and beat the random forest on
+    # both cost and ROC-AUC. They rank orders almost identically, so the
+    # logistic family is chosen and class_weight is left to the grid search.
+    untuned = comparison.set_index("model").loc["Logistic Regression"]
     selected = build_pipeline(
         LogisticRegression(
             max_iter=2000,
@@ -122,8 +140,22 @@ def main():
     )
     grid.fit(X_train, y_train)
 
+    # ROC-AUC is threshold-free: it measures how well late orders are ranked
+    # above on-time ones. The threshold is then chosen from costs separately.
+    gain = float(grid.best_score_ - untuned["roc_auc_mean"])
+    tuning = {
+        "scoring": "roc_auc",
+        "untuned_cv_roc_auc_mean": float(untuned["roc_auc_mean"]),
+        "untuned_cv_roc_auc_std": float(untuned["roc_auc_std"]),
+        "tuned_cv_roc_auc_mean": float(grid.best_score_),
+        "tuned_cv_roc_auc_std": float(
+            grid.cv_results_["std_test_score"][grid.best_index_]
+        ),
+        "gain": gain,
+        "gain_exceeds_fold_spread": bool(gain > untuned["roc_auc_std"]),
+    }
     print("Best settings:", grid.best_params_)
-    print("Best CV ROC-AUC:", grid.best_score_)
+    print(json.dumps(tuning, indent=2))
 
     # Threshold selection uses out-of-fold training probabilities.
     # The test set is not involved.
@@ -162,6 +194,7 @@ def main():
         "categorical_features": CATEGORICAL_FEATURES,
         "best_settings": grid.best_params_,
         "cv_roc_auc": float(grid.best_score_),
+        "tuning": tuning,
         "test_results": metrics,
     }
 

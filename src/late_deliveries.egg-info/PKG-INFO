@@ -1,7 +1,0 @@
-Metadata-Version: 2.4
-Name: late-deliveries
-Version: 0.1.0
-Summary: Predict late deliveries using cost-aware machine learning
-Requires-Python: >=3.11
-License-File: LICENSE
-Dynamic: license-file
