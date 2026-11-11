@@ -18,6 +18,15 @@
     "model__class_weight": null
   },
   "cv_roc_auc": 0.7797518819345737,
+  "tuning": {
+    "scoring": "roc_auc",
+    "untuned_cv_roc_auc_mean": 0.7794982286441885,
+    "untuned_cv_roc_auc_std": 0.038411806364394424,
+    "tuned_cv_roc_auc_mean": 0.7797518819345737,
+    "tuned_cv_roc_auc_std": 0.037638458841439806,
+    "gain": 0.0002536532903851807,
+    "gain_exceeds_fold_spread": false
+  },
   "test_results": {
     "threshold": 0.3,
     "confusion_matrix": [
