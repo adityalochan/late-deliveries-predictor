@@ -1,21 +1,15 @@
 import joblib
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-
-from latedeliveries.pipeline import build_pipeline, split_data
 
 
-def test_saved_model_predictions_match(tmp_path):
-    X_train, _, y_train, _ = split_data()
-    model = build_pipeline(LogisticRegression(max_iter=2000))
-    model.fit(X_train, y_train)
+def test_saved_model_predictions_match(fitted_model, train_data, tmp_path):
+    X_train, _ = train_data
 
     path = tmp_path / "test_model.joblib"
-    joblib.dump(model, path)
-
+    joblib.dump(fitted_model, path)
     restored = joblib.load(path)
 
-    before = model.predict_proba(X_train.iloc[:10])
-    after = restored.predict_proba(X_train.iloc[:10])
+    before = fitted_model.predict_proba(X_train.iloc[:50])
+    after = restored.predict_proba(X_train.iloc[:50])
 
     np.testing.assert_allclose(before, after)
